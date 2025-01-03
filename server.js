@@ -1,33 +1,36 @@
-// Import dependencies
-const express = require('express');
-const http = require('http');
+const fastify = require('fastify')();
+const path = require('path');
 const socketIo = require('socket.io');
 
-// Initialize the app
-const app = express();
-const server = http.createServer(app);
+// Serve static files (like your CSS, JS, etc.)
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/', // Static assets will be available under "/public/"
+});
+
+// Create a basic route for the homepage
+fastify.get('/', (request, reply) => {
+  reply.sendFile('index.html');  // Make sure the path is correct
+});
+
+// Create a socket connection on the server
+const server = fastify.listen(3000, (err, address) => {
+  if (err) {
+    console.log(err);
+    process.exit(1);
+  }
+  console.log(`Server listening at ${address}`);
+});
+
 const io = socketIo(server);
 
-// Serve the static files (HTML, CSS, JS) from the "public" folder
-app.use(express.static('public'));
-
-// Handle a new user connection
+// Handle socket connections
 io.on('connection', (socket) => {
   console.log('A user connected');
-  
-  // Handle receiving messages from the client
-  socket.on('chat-message', (msg) => {
-    // Broadcast the message to all users
-    io.emit('chat-message', msg);
+  socket.on('chat-message', (message) => {
+    io.emit('chat-message', message);  // Broadcast the message to all clients
   });
-  
-  // Handle user disconnection
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });
-});
-
-// Set the server to listen on port 3000
-server.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
 });

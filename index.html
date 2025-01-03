@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Pacifico&display=swap" rel="stylesheet"> <!-- Add cute font -->
+  <style>
+    /* Global styles */
+    body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #b6a9d9, #9e94d1); /* Periwinkle gradient */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #333;
+  flex-direction: column;
+  overflow-x: hidden; /* Prevent horizontal scrollbar */
+}
+
+    /* Header style */
+    .header {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      font-size: 36px; /* Larger font size */
+      color: white;
+      font-family: 'Pacifico', cursive; /* Cute and playful font */
+      font-weight: normal;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); /* Adding shadow to the text */
+    }
+
+    .chat-container {
+      width: 350px;
+      height: 500px;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: scroll;
+      background-color: #f9f9f9;
+      border-bottom: 2px solid #e2e2e2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      max-width: 70%;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+
+    .user-message {
+      background-color: #b3e0ff;
+      align-self: flex-end;
+      border-top-left-radius: 5px;
+    }
+
+    .partner-message {
+      background-color: #ffd1dc;
+      align-self: flex-start;
+      border-top-right-radius: 5px;
+    }
+
+    .message-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+    }
+
+    textarea {
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  padding: 10px;
+  resize: none;
+  outline: none;
+  font-size: 16px;
+  min-height: 50px;
+  max-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+    button {
+      background-color: #8a7fd4; /* Periwinkle color */
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #6f64b3; /* Darker periwinkle for hover effect */
+      transform: scale(1.05);
+    }
+
+    .message-input-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-top: 2px solid #e2e2e2;
+      background-color: #f2f2f2;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background-color: #d1cfd1;
+      border-radius: 10px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+      background-color: #f9f9f9;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Header Section -->
+  <div class="header">
+    Our Safe Space
+  </div>
+
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box"></div>
+    <div class="message-input-container">
+      <textarea id="message-input" placeholder="Type your message..."></textarea>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();  // Connect to the server
+
+    function sendMessage() {
+      const message = document.getElementById("message-input").value;
+      if (message.trim()) {
+        socket.emit('chat-message', message);  // Send the message to the server
+        document.getElementById("message-input").value = '';  // Clear the input field
+      }
+    }
+
+    // Listen for incoming messages and display them
+    socket.on('chat-message', (message) => {
+      const chatBox = document.getElementById("chat-box");
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add('message');
+      
+      // You can customize which message is from the user or the partner by adjusting the class
+      messageDiv.classList.add('partner-message');  // For this demo, all messages are considered from the partner
+      messageDiv.textContent = message;
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;  // Auto-scroll to the newest message
+    });
+
+    // Add an event listener to send message when Enter is pressed
+    document.getElementById("message-input").addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {  // Only send on Enter (not Shift + Enter)
+        event.preventDefault();  // Prevent the newline
+        sendMessage();
+      }
+    });
+  </script>
+
+</body>
+</html>
